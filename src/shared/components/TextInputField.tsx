@@ -13,7 +13,7 @@ export const TextInputField = <TDataType,>({
   ...props
 }: TextInputFieldProps<TDataType>) => {
   const { control } = useFormContext();
-  const { field } = useController<FieldValues>({
+  const { field, fieldState } = useController<FieldValues>({
     control,
     name,
     defaultValue: ''
@@ -21,6 +21,8 @@ export const TextInputField = <TDataType,>({
 
   // const fieldError = fieldState.error as unknown as FieldError | undefined;
   const { value, ...handlers } = field;
+  const hasError = !!fieldState.error;
+  const errorMessage = fieldState.error?.message;
 
   return (
     <TextField
@@ -29,6 +31,7 @@ export const TextInputField = <TDataType,>({
       {...handlers}
       id={name}
       value={value || ''}
+      helperText={hasError || errorMessage}
       {...(format && { onChange: compose(handlers.onChange, format) })}
     />
   );
