@@ -3,7 +3,6 @@ import type { InferType } from 'yup';
 import creditCardType from 'credit-card-type';
 import { parseExpiryDate } from '../utils/dateUtils.ts';
 
-
 const getCardType = (cardNumber: string) => {
   const digits = cardNumber.replace(/\s/g, '');
 
