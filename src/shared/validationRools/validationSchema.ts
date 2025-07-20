@@ -1,37 +1,49 @@
 import * as yup from 'yup';
-import type { Asserts } from 'yup';
+import type { InferType } from 'yup';
+import creditCardType from 'credit-card-type';
+import { parseExpiryDate } from '../utils/dateUtils.ts';
 
-const isAmex = (cardNumber: string) => {
+// Функция для определения типа карты с использованием библиотеки
+const getCardType = (cardNumber: string) => {
   const digits = cardNumber.replace(/\s/g, '');
-  return /^3[47]/.test(digits);
+
+  if (!digits || digits.length < 4) return null;
+
+  try {
+    const types = creditCardType(digits);
+
+    return types.length > 0 ? types[0] : null;
+  } catch (error) {
+    console.warn('Error detecting card type:', error);
+
+    return null;
+  }
 };
 
-const currentDate = new Date();
-const currentMonth = currentDate.getMonth() + 1;
+// Функция для получения правильной длины CVV для данного типа карты
+const getCvvLengthForCard = (cardType: any) =>
+  cardType && cardType.code?.size ? cardType.code.size : 3;
 
-const creditCardSchema = yup.object().shape({
+const creditCardSchema = yup.object({
   cardNumber: yup
     .string()
     .required('Card number is required')
-    .test('cardNumberFormat', 'Invalid card number format', value => {
+    .test('cardNumberFormat', 'Your card number is invalid', value => {
       if (!value) return false;
       const digits = value.replace(/\s/g, '');
-      return /^\d{15}$/.test(digits) || /^\d{16}$/.test(digits);
-    })
-    .test(
-      'cardNumberLength',
-      'Card number must be 15 digits for Amex or 16 for others',
-      value => {
-        if (!value) return false;
-        const digits = value.replace(/\s/g, '');
 
-        if (isAmex(digits)) {
-          return digits.length === 15;
-        } else {
-          return digits.length === 16;
-        }
+      try {
+        const cardTypes = creditCardType(digits);
+
+        if (cardTypes.length === 0) return false;
+
+        const cardInfo = cardTypes[0];
+
+        return cardInfo.lengths.includes(digits.length);
+      } catch (error) {
+        return false;
       }
-    ),
+    }),
 
   expiryDate: yup
     .string()
@@ -39,20 +51,9 @@ const creditCardSchema = yup.object().shape({
     .matches(/^(0[1-9]|1[0-2])\/\d{2}$/, 'Expiry date must be in MM/YY format')
     .test('expiry', 'Card has expired', value => {
       if (!value) return false;
+      const { isValid } = parseExpiryDate(value);
 
-      const [month, year] = value.split('/').map(Number);
-      const expYear = year + 2000; // Convert YY to 20YY
-
-      const currentFullYear = currentDate.getFullYear();
-
-      if (expYear < currentFullYear) {
-        return false;
-      }
-      if (expYear === currentFullYear && month < currentMonth) {
-        return false;
-      }
-
-      return true;
+      return isValid;
     }),
 
   cvv: yup
@@ -60,18 +61,19 @@ const creditCardSchema = yup.object().shape({
     .required('CVV is required')
     .test(
       'cvvFormat',
-      'CVV must be 3 digits for Visa/Mastercard or 4 digits for Amex',
+      'CVV length is invalid for this card type',
       function (value) {
         if (!value) return false;
 
         const cardNumber = this.parent.cardNumber || '';
-        const digits = cardNumber.replace(/\s/g, '');
+        const cardType = getCardType(cardNumber);
 
-        if (isAmex(digits)) {
-          return /^\d{4}$/.test(value);
-        } else {
-          return /^\d{3}$/.test(value);
-        }
+        if (!cardType) return /^\d{3}$/.test(value);
+
+        const requiredLength = getCvvLengthForCard(cardType);
+        const regexPattern = new RegExp(`^\\d{${requiredLength}}$`);
+
+        return regexPattern.test(value);
       }
     ),
 
@@ -79,22 +81,19 @@ const creditCardSchema = yup.object().shape({
     .string()
     .required('Cardholder name is required')
     .test(
-      'nameLength',
-      'Name must be at least 5 characters for Amex cards',
-      function (value) {
+      'nameFormat',
+      'Name must contain at least first and last name',
+      value => {
         if (!value) return false;
 
-        const cardNumber = this.parent.cardNumber || '';
-        const digits = cardNumber.replace(/\s/g, '');
+        const trimmedName = value.trim();
+        const nameParts = trimmedName.split(/\s+/);
 
-        if (isAmex(digits)) {
-          return value.length >= 5;
-        }
-
-        return true;
+        return trimmedName.length >= 2 && nameParts.length >= 2;
       }
     )
 });
 
+export type CreditCardFormValues = InferType<typeof creditCardSchema>;
+
 export default creditCardSchema;
-export type CreditCardFormValues = Asserts<typeof creditCardSchema>;

@@ -1,65 +1,181 @@
-import { Paper, Stack, Typography, Box, Divider } from '@mui/material';
-import { CreditCardIcon, Form, SubmitButton, TextInputField } from './shared';
-import formatExpiryDate from './shared/utils/formatExpiryDate.ts';
-import { yupResolver } from '@hookform/resolvers/yup';
+import { Stack, Typography, Box, Divider } from '@mui/material';
+import {
+  CreditCardIcon,
+  CreditCardTypeIcon,
+  Form,
+  SubmitButton,
+  TextInputField
+} from './shared';
 import creditCardSchema, {
   type CreditCardFormValues
 } from './shared/validationRools/validationSchema.ts';
+import { useState, useCallback, useMemo, type ChangeEvent } from 'react';
+import {
+  type CardType,
+  formatCardNumber,
+  getCvvLength,
+  identifyCardType,
+  getCardMaxLength
+} from './shared/utils/creditCardUtils.ts';
+import {
+  formatCVV,
+  formatExpiryDate,
+  formatLettersOnly
+} from './shared/utils/inputFormatter.ts';
+import { yupResolver } from '@hookform/resolvers/yup';
+import { parseExpiryDate } from './shared/utils/dateUtils.ts';
+
+interface ProcessedPayload {
+  cardNumber: string;
+  expiryMonth: string;
+  expiryYear: string;
+  cvv: string;
+  cardholderName: string;
+}
 
 export const App = () => {
+  const [cardType, setCardType] = useState<CardType>('unknown');
+
+  // Мемоизируем вычисляемые значения
+  const cvvLength = useMemo(() => getCvvLength(cardType), [cardType]);
+  const maxCardLength = useMemo(() => getCardMaxLength(cardType), [cardType]);
+
+  const handleCardNumberChange = useCallback(
+    (e: ChangeEvent<HTMLInputElement>): ChangeEvent<HTMLInputElement> => {
+      try {
+        const value = e.target.value;
+        const newCardType = identifyCardType(value);
+        const formattedValue = formatCardNumber(value);
+
+        setCardType(newCardType);
+
+        // Создаем новое событие с обновленным значением (не мутируем оригинальное)
+        const newEvent = {
+          ...e,
+          target: {
+            ...e.target,
+            value: formattedValue
+          }
+        };
+
+        return newEvent as ChangeEvent<HTMLInputElement>;
+      } catch (error) {
+        console.warn('Error formatting card number:', error);
+        setCardType('unknown');
+
+        return e;
+      }
+    },
+    []
+  );
+
   const handleSubmit = async (formData: CreditCardFormValues) => {
-    console.log(formData);
+    try {
+      const { month: expiryMonth, year: expiryYear } = parseExpiryDate(
+        formData.expiryDate
+      );
+
+      const payload: ProcessedPayload = {
+        cardNumber: formData.cardNumber.replace(/\s/g, ''),
+        expiryMonth,
+        expiryYear,
+        cvv: formData.cvv,
+        cardholderName: formData.cardholderName.trim()
+      };
+
+      console.log('Processed payment data:', payload);
+    } catch (error) {
+      console.error('Error processing payment:', error);
+    }
   };
 
   return (
-    <div className="flex size-full items-center justify-center bg-green-600 px-4 py-12">
-      <Paper
-        elevation={3}
-        className="size-full max-w-md rounded-xl bg-white px-6 py-8"
-      >
-        <Form
+    <div className="flex min-h-screen w-full items-center justify-center bg-gray-800  px-4 py-12">
+      <Box className="w-full max-w-md overflow-hidden rounded-xl bg-white">
+        <Form<CreditCardFormValues>
           onSubmit={handleSubmit}
-          className="flex size-full flex-col gap-6"
-          resolver={yupResolver(creditCardSchema) as any} // нужно разобраться с типизацией формы
-          mode="onChange"
+          className="flex size-full flex-col gap-6 p-6 sm:p-8"
+          resolver={yupResolver(creditCardSchema)}
+          mode="onBlur"
+          defaultValues={{
+            cardNumber: '',
+            expiryDate: '',
+            cvv: '',
+            cardholderName: ''
+          }}
         >
-          <Box className="flex items-center justify-center gap-2">
-            <Typography variant="body2" color="GrayText">
+          <Box className="flex items-center justify-center gap-2 pb-2">
+            <Typography variant="h5" color="GrayText">
               Payment Method:
             </Typography>
             <CreditCardIcon className="size-5" />
-            <Typography variant="body1" fontWeight="medium">
+            <Typography variant="h6" fontWeight="medium">
               Credit Card
             </Typography>
           </Box>
 
           <Divider />
 
-          <Stack spacing={3}>
+          <Stack spacing={4} className="pt-2">
             <TextInputField
               name="cardNumber"
               label="Card Number"
               placeholder="1234 5678 9012 3456"
+              autoComplete="cc-number"
               fullWidth
-              inputProps={{ maxLength: 19, autoComplete: 'cc-number' }}
+              format={handleCardNumberChange}
+              startAdornment={
+                cardType !== 'unknown' ? (
+                  <CreditCardTypeIcon cardType={cardType} />
+                ) : undefined
+              }
+              inputProps={{
+                maxLength: maxCardLength,
+                inputMode: 'numeric'
+              }}
+              sx={{
+                '& .MuiInputBase-root': {
+                  borderRadius: '8px'
+                }
+              }}
             />
 
-            <Box className="flex gap-4">
+            <Box className="flex flex-col gap-4 sm:flex-row">
               <TextInputField
                 name="expiryDate"
                 label="Expiration Date"
                 placeholder="MM/YY"
+                autoComplete="cc-exp"
                 fullWidth
                 format={formatExpiryDate}
-                inputProps={{ maxLength: 5, autoComplete: 'cc-exp' }}
+                inputProps={{
+                  maxLength: 5,
+                  inputMode: 'numeric'
+                }}
+                sx={{
+                  '& .MuiInputBase-root': {
+                    borderRadius: '8px'
+                  }
+                }}
               />
+
               <TextInputField
                 name="cvv"
-                label="CVV"
-                placeholder="123"
+                label={cvvLength === 4 ? 'CVV (4 digits)' : 'CVV'}
+                placeholder={cvvLength === 4 ? '1234' : '123'}
+                autoComplete="cc-csc"
                 fullWidth
-                inputProps={{ maxLength: 4, autoComplete: 'cc-csc' }}
+                format={formatCVV}
+                inputProps={{
+                  maxLength: cvvLength,
+                  inputMode: 'numeric'
+                }}
                 type="password"
+                sx={{
+                  '& .MuiInputBase-root': {
+                    borderRadius: '8px'
+                  }
+                }}
               />
             </Box>
 
@@ -67,16 +183,27 @@ export const App = () => {
               name="cardholderName"
               label="Cardholder Name"
               placeholder="John Doe"
+              autoComplete="cc-name"
               fullWidth
-              type={'text'}
-              inputProps={{ maxLength: 50, autoComplete: 'cc-name' }}
+              format={formatLettersOnly}
+              type="text"
+              inputProps={{
+                maxLength: 50,
+                style: { textTransform: 'uppercase' }
+              }}
+              sx={{
+                '& .MuiInputBase-root': {
+                  borderRadius: '8px'
+                }
+              }}
             />
           </Stack>
-          <Box className="mt-4">
+
+          <Box className="mt-6">
             <SubmitButton />
           </Box>
         </Form>
-      </Paper>
+      </Box>
     </div>
   );
 };

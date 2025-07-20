@@ -11,7 +11,10 @@ export const Form = <TFormValues extends FieldValues>({
   className,
   ...useFormProps
 }: TFormProps<TFormValues>): ReactElement => {
-  const formHandlers = useForm<TFormValues>({ ...useFormProps, defaultValues });
+  const formHandlers = useForm<TFormValues>({
+    ...useFormProps,
+    defaultValues
+  });
 
   const submitHandler = (e: FormEvent<HTMLFormElement>) => {
     if (stopPropagation) {
@@ -25,7 +28,7 @@ export const Form = <TFormValues extends FieldValues>({
 
   return (
     <FormProvider {...formHandlers}>
-      <form onSubmit={submitHandler} className={className}>
+      <form onSubmit={submitHandler} className={className} autoComplete="on">
         {typeof children === 'function' ? children(formHandlers) : children}
       </form>
     </FormProvider>
