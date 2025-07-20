@@ -3,7 +3,7 @@ import type { InferType } from 'yup';
 import creditCardType from 'credit-card-type';
 import { parseExpiryDate } from '../utils/dateUtils.ts';
 
-// Функция для определения типа карты с использованием библиотеки
+
 const getCardType = (cardNumber: string) => {
   const digits = cardNumber.replace(/\s/g, '');
 
@@ -20,7 +20,6 @@ const getCardType = (cardNumber: string) => {
   }
 };
 
-// Функция для получения правильной длины CVV для данного типа карты
 const getCvvLengthForCard = (cardType: any) =>
   cardType && cardType.code?.size ? cardType.code.size : 3;
 
@@ -80,18 +79,34 @@ const creditCardSchema = yup.object({
   cardholderName: yup
     .string()
     .required('Cardholder name is required')
-    .test(
-      'nameFormat',
-      'Name must contain at least first and last name',
-      value => {
-        if (!value) return false;
+    .test('nameFormat', function (value) {
+      if (!value) return false;
 
-        const trimmedName = value.trim();
-        const nameParts = trimmedName.split(/\s+/);
+      const trimmedName = value.trim();
+      const cardNumber = this.parent.cardNumber || '';
+      const cardType = getCardType(cardNumber);
 
-        return trimmedName.length >= 2 && nameParts.length >= 2;
+      if (cardType && cardType.type === 'american-express') {
+        if (trimmedName.length < 5) {
+          return this.createError({
+            message:
+              'Name must have at least 5 characters for American Express cards'
+          });
+        }
+
+        return true;
       }
-    )
+
+      const nameParts = trimmedName.split(/\s+/);
+
+      if (trimmedName.length < 2 || nameParts.length < 2) {
+        return this.createError({
+          message: 'Name must contain at least first and last name'
+        });
+      }
+
+      return true;
+    })
 });
 
 export type CreditCardFormValues = InferType<typeof creditCardSchema>;

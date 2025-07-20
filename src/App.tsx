@@ -36,20 +36,26 @@ interface ProcessedPayload {
 export const App = () => {
   const [cardType, setCardType] = useState<CardType>('unknown');
 
-  // Мемоизируем вычисляемые значения
   const cvvLength = useMemo(() => getCvvLength(cardType), [cardType]);
   const maxCardLength = useMemo(() => getCardMaxLength(cardType), [cardType]);
 
   const handleCardNumberChange = useCallback(
     (e: ChangeEvent<HTMLInputElement>): ChangeEvent<HTMLInputElement> => {
       try {
-        const value = e.target.value;
+        const input = e.target;
+        const value = input.value;
+
+        const selectionStart = input.selectionStart || 0;
+
+        const spacesBefore = (
+          value.substring(0, selectionStart).match(/\s/g) || []
+        ).length;
+
         const newCardType = identifyCardType(value);
         const formattedValue = formatCardNumber(value);
 
         setCardType(newCardType);
 
-        // Создаем новое событие с обновленным значением (не мутируем оригинальное)
         const newEvent = {
           ...e,
           target: {
@@ -57,6 +63,22 @@ export const App = () => {
             value: formattedValue
           }
         };
+
+        queueMicrotask(() => {
+          if (input) {
+            const formattedValueUpToCursor = formatCardNumber(
+              value.substring(0, selectionStart)
+            );
+            const newSpacesBefore = (
+              formattedValueUpToCursor.match(/\s/g) || []
+            ).length;
+
+            const spaceDiff = newSpacesBefore - spacesBefore;
+            const newCursorPosition = selectionStart + spaceDiff;
+
+            input.setSelectionRange(newCursorPosition, newCursorPosition);
+          }
+        });
 
         return newEvent as ChangeEvent<HTMLInputElement>;
       } catch (error) {

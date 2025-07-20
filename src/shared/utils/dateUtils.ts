@@ -16,15 +16,15 @@ export const parseExpiryDate = (
   const currentYear = currentDate.getFullYear();
   const currentMonth = currentDate.getMonth() + 1;
   const currentTwoDigitYear = currentYear % 100;
+
   let fullYear: number;
 
-  if (twoDigitYear < currentTwoDigitYear - 20) {
-    fullYear = Math.floor(currentYear / 100 + 1) * 100 + twoDigitYear;
-  } else {
+  if (twoDigitYear <= currentTwoDigitYear + 10) {
     fullYear = Math.floor(currentYear / 100) * 100 + twoDigitYear;
+  } else {
+    fullYear = Math.floor(currentYear / 100 - 1) * 100 + twoDigitYear;
   }
 
-  // Проверка на истекшую дату
   const isValid =
     fullYear > currentYear ||
     (fullYear === currentYear && parseInt(month, 10) >= currentMonth);
