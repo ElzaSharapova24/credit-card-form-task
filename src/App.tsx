@@ -90,7 +90,7 @@ export const App = () => {
   };
 
   return (
-    <div className="flex min-h-screen w-full items-center justify-center bg-gray-800  px-4 py-12">
+    <section className="flex min-h-screen w-full items-center justify-center bg-gray-800  px-4 py-12">
       <Box className="w-full max-w-md overflow-hidden rounded-xl bg-white">
         <Form<CreditCardFormValues>
           onSubmit={handleSubmit}
@@ -124,11 +124,7 @@ export const App = () => {
               autoComplete="cc-number"
               fullWidth
               format={handleCardNumberChange}
-              startAdornment={
-                cardType !== 'unknown' ? (
-                  <CreditCardTypeIcon cardType={cardType} />
-                ) : undefined
-              }
+              startAdornment={<CreditCardTypeIcon cardType={cardType} />}
               inputProps={{
                 maxLength: maxCardLength,
                 inputMode: 'numeric'
@@ -204,6 +200,6 @@ export const App = () => {
           </Box>
         </Form>
       </Box>
-    </div>
+    </section>
   );
 };

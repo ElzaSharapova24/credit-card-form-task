@@ -18,9 +18,9 @@ interface CreditCardTypeIconProps {
 
 export const CreditCardTypeIcon = memo<CreditCardTypeIconProps>(
   ({ cardType, size = 24, className = '' }) => {
-    if (cardType === 'unknown') {
-      return null;
-    }
+    // if (cardType === 'unknown') {
+    //   return null;
+    // }
 
     const iconProps = {
       size,
