@@ -1,4 +1,3 @@
-import { type CardType } from '../utils/creditCardUtils';
 import {
   FaCcVisa,
   FaCcMastercard,
@@ -9,6 +8,7 @@ import {
   FaCreditCard
 } from 'react-icons/fa';
 import { memo } from 'react';
+import type { CardType } from '../utils';
 
 interface CreditCardTypeIconProps {
   cardType: CardType;
@@ -18,10 +18,6 @@ interface CreditCardTypeIconProps {
 
 export const CreditCardTypeIcon = memo<CreditCardTypeIconProps>(
   ({ cardType, size = 24, className = '' }) => {
-    // if (cardType === 'unknown') {
-    //   return null;
-    // }
-
     const iconProps = {
       size,
       className: `credit-card-icon ${className}`,

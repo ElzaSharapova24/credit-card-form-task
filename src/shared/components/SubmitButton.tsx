@@ -1,43 +1,36 @@
 import { Button, CircularProgress } from '@mui/material';
 import { useFormContext } from 'react-hook-form';
-import { useState } from 'react';
 
 export const SubmitButton = () => {
-  const { formState } = useFormContext();
-  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
-
-  const handleClick = () => {
-    if (formState.isValid) {
-      setIsSubmitting(true);
-      console.log('submit');
-    }
-  };
+  const {
+    formState: { isSubmitting, isValid }
+  } = useFormContext();
 
   return (
-    <div className="mt-auto w-full">
-      <Button
-        fullWidth
-        variant="contained"
-        type="submit"
-        disabled={!formState.isValid || isSubmitting}
-        onClick={handleClick}
-        sx={{
-          height: '48px',
-          position: 'relative',
-          textTransform: 'none',
-          fontSize: '1rem',
-          fontWeight: 500
-        }}
-      >
-        {isSubmitting ? (
-          <>
-            <CircularProgress size={24} color="inherit" sx={{ mr: 1 }} />
-            Processing...
-          </>
-        ) : (
-          'Pay'
-        )}
-      </Button>
-    </div>
+    <Button
+      type="submit"
+      variant="contained"
+      size="large"
+      fullWidth
+      disabled={isSubmitting || !isValid}
+      startIcon={
+        isSubmitting ? (
+          <CircularProgress size={20} color="inherit" />
+        ) : undefined
+      }
+      sx={{
+        py: 1.5,
+        fontSize: '1rem',
+        fontWeight: 600,
+        textTransform: 'none',
+        borderRadius: '8px',
+        boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+        '&:hover': {
+          boxShadow: '0 4px 12px rgba(0,0,0,0.2)'
+        }
+      }}
+    >
+      {isSubmitting ? 'Processing Payment...' : 'Pay'}
+    </Button>
   );
 };

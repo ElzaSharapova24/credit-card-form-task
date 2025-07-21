@@ -5,10 +5,13 @@ import {
 } from 'react-hook-form';
 import { TextField, InputAdornment } from '@mui/material';
 import type { TextInputFieldProps } from './components.types.ts';
+import Inputmask from 'inputmask';
+import { useEffect, useRef } from 'react';
 
 export const TextInputField = <T extends FieldValues = FieldValues>({
   name,
-  format,
+  onInputChange,
+  inputMask,
   startAdornment,
   ...props
 }: TextInputFieldProps<T> & { startAdornment?: React.ReactNode }) => {
@@ -28,8 +31,21 @@ export const TextInputField = <T extends FieldValues = FieldValues>({
     }
   };
 
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (inputRef.current && inputMask) {
+      Inputmask.remove(inputRef.current);
+      const im = new Inputmask(inputMask, {
+        placeholder: ''
+      });
+
+      im.mask(inputRef.current);
+    }
+  }, [inputMask]);
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const formattedEvent = format ? format(e) : e;
+    const formattedEvent = onInputChange ? onInputChange(e) : e;
 
     onChange(formattedEvent);
     if (hasError) {
@@ -45,6 +61,7 @@ export const TextInputField = <T extends FieldValues = FieldValues>({
       id={name}
       value={value || ''}
       error={hasError}
+      inputRef={inputRef}
       helperText={hasError ? errorMessage : props.helperText}
       onChange={handleChange}
       onFocus={handleFocus}
@@ -66,7 +83,9 @@ export const TextInputField = <T extends FieldValues = FieldValues>({
           marginTop: '4px',
           transition: 'all 0.2s ease'
         },
-        ...props.sx
+        '& .MuiInputBase-root': {
+          borderRadius: '8px'
+        }
       }}
     />
   );

@@ -40,6 +40,10 @@ type TextInputFieldOwnProps<DataType> = InputBaseProps<DataType> &
 
 export type TextInputFieldProps<DataType> = TextInputFieldOwnProps<DataType> & {
   label?: string;
+  inputMask?: string;
+  onInputChange?: (
+    value: ChangeEvent<HTMLInputElement>
+  ) => ChangeEvent<HTMLInputElement>;
   format?: (
     value: ChangeEvent<HTMLInputElement>
   ) => ChangeEvent<HTMLInputElement>;

@@ -1,9 +1,20 @@
 import * as yup from 'yup';
 import type { InferType } from 'yup';
 import creditCardType from 'credit-card-type';
-import { parseExpiryDate } from '../utils/dateUtils.ts';
+import { parseExpiryDate } from '../utils';
 
-const getCardType = (cardNumber: string) => {
+interface CreditCardTypeResult {
+  niceType: string;
+  type: string;
+  gaps: Array<number>;
+  lengths: Array<number>;
+  code: {
+    name: string;
+    size: number;
+  };
+}
+
+const getCardType = (cardNumber: string): CreditCardTypeResult | null => {
   const digits = cardNumber.replace(/\s/g, '');
 
   if (!digits || digits.length < 4) return null;
@@ -19,8 +30,8 @@ const getCardType = (cardNumber: string) => {
   }
 };
 
-const getCvvLengthForCard = (cardType: any) =>
-  cardType && cardType.code?.size ? cardType.code.size : 3;
+const getCvvLengthForCard = (cardType: CreditCardTypeResult | null): number =>
+  cardType?.code?.size ?? 3;
 
 const creditCardSchema = yup.object({
   cardNumber: yup
@@ -88,8 +99,7 @@ const creditCardSchema = yup.object({
       if (cardType && cardType.type === 'american-express') {
         if (trimmedName.length < 5) {
           return this.createError({
-            message:
-              'Name must have at least 5 characters for American Express cards'
+            message: 'Name must have at least 5 characters for AMEX cards'
           });
         }
 
