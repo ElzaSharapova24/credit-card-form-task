@@ -72,11 +72,8 @@ export const App = () => {
   };
 
   const handleCloseSuccessModal = () => {
-    setShowSuccessModal(false);
-    setSubmitStatus('idle');
-    setCardType('unknown');
-
-    console.log('Ready for next transaction');
+    console.log('Reloading page for next transaction');
+    window.location.reload();
   };
 
   return (
@@ -86,7 +83,8 @@ export const App = () => {
           onSubmit={handleSubmit}
           className="flex size-full flex-col gap-6 p-6 sm:p-8"
           resolver={yupResolver(creditCardSchema)}
-          mode="onBlur"
+          mode="all"
+          reValidateMode="onChange"
           defaultValues={{
             cardNumber: '',
             expiryDate: '',
@@ -94,98 +92,90 @@ export const App = () => {
             cardholderName: ''
           }}
         >
-          {formHandlers => (
-            <>
-              <Box sx={{ display: showSuccessModal ? 'none' : 'block' }}>
-                <Box className="mb-2 flex items-center justify-center gap-2 pb-2">
-                  <Typography variant="h5" color="GrayText">
-                    Payment Method:
-                  </Typography>
-                  <CreditCardIcon className="size-5" />
-                  <Typography variant="h6" fontWeight="medium">
-                    Credit Card
-                  </Typography>
-                </Box>
+          <Box sx={{ display: showSuccessModal ? 'none' : 'block' }}>
+            <Box className="mb-2 flex items-center justify-center gap-2 pb-2">
+              <Typography variant="h5" color="GrayText">
+                Payment Method:
+              </Typography>
+              <CreditCardIcon className="size-5" />
+              <Typography variant="h6" fontWeight="medium">
+                Credit Card
+              </Typography>
+            </Box>
 
-                <Divider />
+            <Divider />
 
-                {submitStatus === 'error' && (
-                  <Alert severity="error" sx={{ mt: 2 }}>
-                    Payment submission failed. Please try again.
-                  </Alert>
-                )}
+            {submitStatus === 'error' && (
+              <Alert severity="error" sx={{ mt: 2 }}>
+                Payment submission failed. Please try again.
+              </Alert>
+            )}
 
-                <Stack spacing={4} className="pt-5">
-                  <TextInputField
-                    name="cardNumber"
-                    label="Card Number"
-                    placeholder="1234 5678 9012 3456"
-                    inputMask={
-                      cardType === 'american-express'
-                        ? '9999 9999 9999 999'
-                        : '9999 9999 9999 9999'
-                    }
-                    autoComplete="cc-number"
-                    fullWidth
-                    disabled={isSubmitting}
-                    onInputChange={handleCardNumberChange}
-                    startAdornment={<CreditCardTypeIcon cardType={cardType} />}
-                  />
+            <Stack spacing={4} className="pt-5">
+              <TextInputField
+                name="cardNumber"
+                label="Card Number"
+                placeholder="1234 5678 9012 3456"
+                inputMask={
+                  cardType === 'american-express'
+                    ? '9999 9999 9999 999'
+                    : '9999 9999 9999 9999'
+                }
+                autoComplete="cc-number"
+                fullWidth
+                disabled={isSubmitting}
+                onInputChange={handleCardNumberChange}
+                startAdornment={<CreditCardTypeIcon cardType={cardType} />}
+              />
 
-                  <Box className="flex flex-col gap-4 sm:flex-row">
-                    <TextInputField
-                      name="expiryDate"
-                      label="Expiration Date"
-                      placeholder="MM/YY"
-                      inputMask="99/99"
-                      autoComplete="cc-exp"
-                      fullWidth
-                      disabled={isSubmitting}
-                    />
+              <Box className="flex flex-col gap-4 sm:flex-row">
+                <TextInputField
+                  name="expiryDate"
+                  label="Expiration Date"
+                  placeholder="MM/YY"
+                  inputMask="99/99"
+                  autoComplete="cc-exp"
+                  fullWidth
+                  disabled={isSubmitting}
+                />
 
-                    <TextInputField
-                      name="cvv"
-                      label={cvvLength === 4 ? 'CVV (4 digits)' : 'CVV'}
-                      placeholder={cvvLength === 4 ? '1234' : '123'}
-                      autoComplete="cc-csc"
-                      fullWidth
-                      disabled={isSubmitting}
-                      inputMask={
-                        cardType === 'american-express' ? '9999' : '999'
-                      }
-                      type="password"
-                    />
-                  </Box>
-
-                  <TextInputField
-                    name="cardholderName"
-                    label="Cardholder Name"
-                    placeholder="John Doe"
-                    autoComplete="cc-name"
-                    fullWidth
-                    disabled={isSubmitting}
-                    onInputChange={formatLettersOnly}
-                    type="text"
-                    inputProps={{
-                      maxLength: 50,
-                      style: { textTransform: 'uppercase' }
-                    }}
-                  />
-                </Stack>
-
-                <Box className="mt-6">
-                  <SubmitButton />
-                </Box>
+                <TextInputField
+                  name="cvv"
+                  label={cvvLength === 4 ? 'CVV (4 digits)' : 'CVV'}
+                  placeholder={cvvLength === 4 ? '1234' : '123'}
+                  autoComplete="cc-csc"
+                  fullWidth
+                  disabled={isSubmitting}
+                  inputMask={cardType === 'american-express' ? '9999' : '999'}
+                  type="password"
+                />
               </Box>
-              <PaymentSuccessModal
-                open={showSuccessModal}
-                onClose={() => {
-                  handleCloseSuccessModal();
-                  formHandlers.reset();
+
+              <TextInputField
+                name="cardholderName"
+                label="Cardholder Name"
+                placeholder="John Doe"
+                autoComplete="cc-name"
+                fullWidth
+                disabled={isSubmitting}
+                onInputChange={formatLettersOnly}
+                type="text"
+                inputProps={{
+                  maxLength: 50,
+                  style: { textTransform: 'uppercase' }
                 }}
               />
-            </>
-          )}
+            </Stack>
+
+            <Box className="mt-6">
+              <SubmitButton />
+            </Box>
+          </Box>
+
+          <PaymentSuccessModal
+            open={showSuccessModal}
+            onClose={handleCloseSuccessModal}
+          />
         </Form>
       </Box>
     </section>

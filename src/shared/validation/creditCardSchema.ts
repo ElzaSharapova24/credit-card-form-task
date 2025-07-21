@@ -68,23 +68,19 @@ const creditCardSchema = yup.object({
   cvv: yup
     .string()
     .required('CVV is required')
-    .test(
-      'cvvFormat',
-      'CVV length is invalid for this card type',
-      function (value) {
-        if (!value) return false;
+    .test('cvvFormat', 'Your CVV code is invalid', function (value) {
+      if (!value) return false;
 
-        const cardNumber = this.parent.cardNumber || '';
-        const cardType = getCardType(cardNumber);
+      const cardNumber = this.parent.cardNumber || '';
+      const cardType = getCardType(cardNumber);
 
-        if (!cardType) return /^\d{3}$/.test(value);
+      if (!cardType) return /^\d{3}$/.test(value);
 
-        const requiredLength = getCvvLengthForCard(cardType);
-        const regexPattern = new RegExp(`^\\d{${requiredLength}}$`);
+      const requiredLength = getCvvLengthForCard(cardType);
+      const regexPattern = new RegExp(`^\\d{${requiredLength}}$`);
 
-        return regexPattern.test(value);
-      }
-    ),
+      return regexPattern.test(value);
+    }),
 
   cardholderName: yup
     .string()
