@@ -4,7 +4,7 @@ import {
   useFormContext
 } from 'react-hook-form';
 import { TextField, InputAdornment } from '@mui/material';
-import type { TextInputFieldProps } from './components.types.ts';
+import type { TextInputFieldProps } from '@/shared';
 import Inputmask from 'inputmask';
 import { useEffect, useRef } from 'react';
 

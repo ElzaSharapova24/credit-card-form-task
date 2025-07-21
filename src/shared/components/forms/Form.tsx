@@ -1,6 +1,6 @@
 import type { FormEvent, ReactElement } from 'react';
 import { type FieldValues, FormProvider, useForm } from 'react-hook-form';
-import type { TFormProps } from './components.types.ts';
+import type { TFormProps } from '@/shared';
 
 export const Form = <TFormValues extends FieldValues>({
   children,

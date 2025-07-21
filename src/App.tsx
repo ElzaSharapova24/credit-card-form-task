@@ -1,7 +1,7 @@
 import { Stack, Typography, Box, Divider, Alert } from '@mui/material';
 import { useState, useCallback, useMemo, type ChangeEvent } from 'react';
 import { yupResolver } from '@hookform/resolvers/yup';
-import { PaymentSuccessModal } from './shared/modals/PaymentSuccessModal.tsx';
+import { PaymentSuccessModal } from '@/shared/components/modals/PaymentSuccessModal.tsx';
 import {
   CreditCardIcon,
   CreditCardTypeIcon,
@@ -14,10 +14,10 @@ import {
   formatLettersOnly,
   getCvvLength,
   identifyCardType
-} from './shared/utils';
+} from '@/shared';
 import creditCardSchema, {
   type CreditCardFormValues
-} from './shared/validationRules/creditCardSchema.ts';
+} from '@/shared/validation/creditCardSchema.ts';
 
 export const App = () => {
   const [cardType, setCardType] = useState<CardType>('unknown');
@@ -54,8 +54,15 @@ export const App = () => {
 
     try {
       await new Promise(resolve => setTimeout(resolve, 2000));
+      const data = {
+        cardNumber: formData.cardNumber?.replace(/\s/g, '') || '',
+        expiryMonth: formData.expiryDate?.slice(0, 2) || '',
+        expiryYear: '20' + (formData.expiryDate?.slice(3, 5) || ''),
+        cvv: formData.cvv || '',
+        cardholderName: formData.cardholderName || ''
+      };
 
-      console.log('Payment form data:', formData);
+      console.log('Payment form data:', JSON.stringify(data, null, 2));
       console.log('Payment submitted successfully!');
 
       setSubmitStatus('success');

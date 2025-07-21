@@ -1,3 +1,3 @@
-export * from './assets.types';
-export * from './CreditCardIcon.tsx';
-export * from './CreditCardTypeIcon.tsx';
+export * from '@/shared/assets/assets.types.ts';
+export * from '@/shared/assets/CreditCardIcon.tsx';
+export * from '@/shared/assets/CreditCardTypeIcon.tsx';
