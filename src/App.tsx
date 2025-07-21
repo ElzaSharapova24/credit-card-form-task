@@ -1,14 +1,7 @@
 import { Stack, Typography, Box, Divider, Alert } from '@mui/material';
 import { useState, useCallback, useMemo, type ChangeEvent } from 'react';
 import { yupResolver } from '@hookform/resolvers/yup';
-import { PaymentSuccessModal } from '@/shared/components/modals/PaymentSuccessModal.tsx';
-import {
-  CreditCardIcon,
-  CreditCardTypeIcon,
-  Form,
-  SubmitButton,
-  TextInputField
-} from './shared';
+import { PaymentSuccessModal } from '@/components/modals/PaymentSuccessModal.tsx';
 import {
   type CardType,
   formatLettersOnly,
@@ -18,6 +11,8 @@ import {
 import creditCardSchema, {
   type CreditCardFormValues
 } from '@/shared/validation/creditCardSchema.ts';
+import { Form, SubmitButton, TextInputField } from '@/components';
+import { CreditCardIcon, CreditCardTypeIcon } from '@/assets';
 
 export const App = () => {
   const [cardType, setCardType] = useState<CardType>('unknown');
@@ -53,13 +48,14 @@ export const App = () => {
     setSubmitStatus('idle');
 
     try {
+      // Эмуляция запроса к серверу перед показом модалки
       await new Promise(resolve => setTimeout(resolve, 2000));
       const data = {
-        cardNumber: formData.cardNumber?.replace(/\s/g, '') || '',
-        expiryMonth: formData.expiryDate?.slice(0, 2) || '',
-        expiryYear: '20' + (formData.expiryDate?.slice(3, 5) || ''),
-        cvv: formData.cvv || '',
-        cardholderName: formData.cardholderName || ''
+        cardNumber: formData.cardNumber?.replace(/\s/g, ''),
+        expiryMonth: formData.expiryDate?.slice(0, 2),
+        expiryYear: '20' + formData.expiryDate?.slice(3, 5),
+        cvv: formData.cvv,
+        cardholderName: formData.cardholderName
       };
 
       console.log('Payment form data:', JSON.stringify(data, null, 2));

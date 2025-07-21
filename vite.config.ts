@@ -5,10 +5,15 @@ import * as path from 'node:path';
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [react()],
+  base: '/credit-card-form-task/',
   resolve: {
     alias: {
       '@': path.resolve(__dirname, 'src'),
       '@shared': path.resolve(__dirname, 'src/shared/')
     }
+  },
+  build: {
+    outDir: 'dist',
+    assetsDir: 'assets'
   }
 });

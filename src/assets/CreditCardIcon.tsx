@@ -1,4 +1,4 @@
-import type { SvgIconComponent } from '@/shared';
+import type { SvgIconComponent } from '@/assets/assets.types.ts';
 
 export const CreditCardIcon: SvgIconComponent = ({ ...props }) => (
   <svg

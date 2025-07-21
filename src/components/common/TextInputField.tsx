@@ -4,9 +4,9 @@ import {
   useFormContext
 } from 'react-hook-form';
 import { TextField, InputAdornment } from '@mui/material';
-import type { TextInputFieldProps } from '@/shared';
 import Inputmask from 'inputmask';
 import { useEffect, useRef } from 'react';
+import type { TextInputFieldProps } from '@/components';
 
 export const TextInputField = <T extends FieldValues = FieldValues>({
   name,

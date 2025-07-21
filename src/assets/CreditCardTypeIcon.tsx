@@ -8,7 +8,7 @@ import {
   FaCreditCard
 } from 'react-icons/fa';
 import { memo } from 'react';
-import type { CardType } from '../utils';
+import type { CardType } from '@/shared';
 
 interface CreditCardTypeIconProps {
   cardType: CardType;
